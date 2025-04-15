@@ -410,3 +410,215 @@ func TestBookList_GetAll(t *testing.T) {
 		})
 	}
 }
+
+func TestBookList_Update(t *testing.T) {
+	type CheckFn func(t *testing.T, book *models.Book, bl *BookList)
+
+	var (
+		CheckList = func(fns ...CheckFn) []CheckFn { return fns }
+		err       error
+
+		hasError = func(want bool) CheckFn {
+			return func(t *testing.T, _ *models.Book, _ *BookList) {
+				t.Helper()
+				if want {
+					assert.NotNil(t, err, "hasError: error expected, none produced")
+				} else {
+					assert.Nil(t, err, "hasError = [+%v], no error expected")
+				}
+			}
+		}
+
+		expectedBook = func(expected *models.Book) CheckFn {
+			return func(t *testing.T, book *models.Book, bl *BookList) {
+				assert.EqualValues(t, expected, book)
+			}
+		}
+
+		tests = []struct {
+			name   string
+			id     int32
+			data   *models.Book
+			before func(bl *BookList)
+			checks []CheckFn
+		}{
+			{
+				name: "update-first",
+				id:   1,
+				before: func(bl *BookList) {
+					bl.list[1] = &models.Book{
+						ID:     1,
+						Title:  "test-book-one",
+						Author: "test-author-one",
+						Price:  10.0,
+						ISBN:   "1234567890",
+						Active: true,
+					}
+					bl.count = 1
+				},
+				data: &models.Book{
+					ID:     1,
+					Title:  "test-book-one (updated)",
+					Author: "test-author-one",
+					Price:  10.0,
+					ISBN:   "1234567890",
+					Active: true,
+				},
+				checks: CheckList(
+					hasError(false),
+					expectedBook(&models.Book{
+						ID:     1,
+						Title:  "test-book-one (updated)",
+						Author: "test-author-one",
+						Price:  10.0,
+						ISBN:   "1234567890",
+						Active: true,
+					}),
+				),
+			},
+			{
+				name: "not-found",
+				id:   1,
+				checks: CheckList(
+					hasError(true),
+				),
+			},
+			{
+				name: "missing-data",
+				id:   1,
+				before: func(bl *BookList) {
+					bl.list[1] = &models.Book{
+						ID:     1,
+						Title:  "test-book-one",
+						Author: "test-author-one",
+						Price:  10.0,
+						ISBN:   "1234567890",
+						Active: true,
+					}
+					bl.count = 1
+				},
+				data: &models.Book{
+					ID:     1,
+					Title:  "",
+					Author: "test-author-one",
+					Price:  10.0,
+					ISBN:   "1234567890",
+					Active: true,
+				},
+				checks: CheckList(
+					hasError(true),
+				),
+			},
+		}
+	)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				bl  = NewBookList()
+				got *models.Book
+			)
+
+			if tt.before != nil {
+				tt.before(bl)
+			}
+
+			got, err = bl.Update(tt.id, tt.data)
+			for _, check := range tt.checks {
+				check(t, got, bl)
+			}
+		})
+	}
+}
+
+func TestBookList_Delete(t *testing.T) {
+	type CheckFn func(t *testing.T, bl *BookList)
+
+	var (
+		CheckList = func(fns ...CheckFn) []CheckFn { return fns }
+		err       error
+
+		hasError = func(want bool) CheckFn {
+			return func(t *testing.T, _ *BookList) {
+				t.Helper()
+				if want {
+					assert.NotNil(t, err, "hasError: error expected, none produced")
+				} else {
+					assert.Nil(t, err, "hasError = [+%v], no error expected")
+				}
+			}
+		}
+
+		isDeleted = func(id int32) CheckFn {
+			return func(t *testing.T, bl *BookList) {
+				t.Helper()
+				assert.False(t, bl.list[id].Active)
+			}
+		}
+
+		tests = []struct {
+			name   string
+			id     int32
+			before func(bl *BookList)
+			checks []CheckFn
+		}{
+			{
+				name: "success",
+				id:   1,
+				before: func(bl *BookList) {
+					bl.list[1] = &models.Book{
+						ID:     1,
+						Title:  "test-book-one",
+						Author: "test-author-one",
+						Price:  10.0,
+						ISBN:   "1234567890",
+						Active: true,
+					}
+					bl.count = 1
+				},
+				checks: CheckList(
+					hasError(false),
+					isDeleted(1),
+				),
+			},
+			{
+				name: "not-found",
+				id:   1,
+				checks: CheckList(
+					hasError(true),
+				),
+			},
+		}
+	)
+
+	// type fields struct {
+	// 	list  map[int32]*models.Book
+	// 	lock  sync.Mutex
+	// 	count int32
+	// }
+	// type args struct {
+	// 	id int32
+	// }
+	// tests := []struct {
+	// 	name    string
+	// 	fields  fields
+	// 	args    args
+	// 	wantErr bool
+	// }{
+	// 	// TODO: Add test cases.
+	// }
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			bl := NewBookList()
+
+			if tt.before != nil {
+				tt.before(bl)
+			}
+
+			err = bl.Delete(tt.id)
+			for _, check := range tt.checks {
+				check(t, bl)
+			}
+		})
+	}
+}

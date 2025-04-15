@@ -62,6 +62,10 @@ func (bl *BookList) Update(id int32, data *models.Book) (*models.Book, error) {
 		return nil, err
 	}
 
+	if data.Title == "" || data.Author == "" {
+		return nil, fmt.Errorf("some field data missing")
+	}
+
 	bl.lock.Lock()
 	defer bl.lock.Unlock()
 
