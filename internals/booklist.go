@@ -37,7 +37,7 @@ func (bl *BookList) Add(data *models.Book) (int32, error) {
 }
 
 func (bl *BookList) GetOne(id int32) (*models.Book, error) {
-	if book, ok := bl.list[id]; ok {
+	if book, ok := bl.list[id]; ok && book.Active {
 		return book, nil
 	}
 

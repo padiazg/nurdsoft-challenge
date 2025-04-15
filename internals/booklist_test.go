@@ -244,6 +244,35 @@ func TestBookList_GetOne(t *testing.T) {
 					hasError(true),
 				),
 			},
+			{
+				name: "deleted",
+				id:   2,
+				before: func(bl *BookList) {
+					bl.list = map[int32]*models.Book{
+						1: {
+							ID:     1,
+							Title:  "test-book-one",
+							Author: "test-author-one",
+							Price:  10.0,
+							ISBN:   "1234567890",
+							Active: true,
+						},
+						2: {
+							ID:     2,
+							Title:  "test-book-two",
+							Author: "test-author-two",
+							Price:  11.0,
+							ISBN:   "123456789222",
+							Active: false,
+						},
+					}
+
+					bl.count = int32(len(bl.list))
+				},
+				checks: CheckList(
+					hasError(true),
+				),
+			},
 		}
 	)
 	for _, tt := range tests {
@@ -259,6 +288,122 @@ func TestBookList_GetOne(t *testing.T) {
 			}
 
 			got, err = bl.GetOne(tt.id)
+			for _, check := range tt.checks {
+				check(t, got, bl)
+			}
+		})
+	}
+}
+
+func TestBookList_GetAll(t *testing.T) {
+	type CheckFn func(t *testing.T, l []*models.Book, bl *BookList)
+
+	var (
+		CheckList = func(fns ...CheckFn) []CheckFn { return fns }
+
+		expected = func(list []*models.Book) CheckFn {
+			return func(t *testing.T, l []*models.Book, bl *BookList) {
+				t.Helper()
+				len0 := len(list)
+				len1 := len(l)
+				if assert.Equalf(t, len0, len1, "count differ: expected %d, got %d", len0, len1) {
+					for _, b0 := range list {
+						found := false
+						for _, b1 := range l {
+							if b0.ID == b1.ID {
+								found = true
+								break
+							}
+						}
+						if !found {
+							t.Errorf("expected ID=%d to be present, not found", b0.ID)
+						}
+					}
+				}
+			}
+		}
+
+		tests = []struct {
+			name   string
+			before func(bl *BookList)
+			checks []CheckFn
+		}{
+			{
+				name: "success",
+				before: func(bl *BookList) {
+					bl.list = map[int32]*models.Book{
+						1: {
+							ID:     1,
+							Title:  "test-book-one",
+							Author: "test-author-one",
+							Price:  10.0,
+							ISBN:   "1234567890",
+							Active: true,
+						},
+						2: {
+							ID:     2,
+							Title:  "test-book-two",
+							Author: "test-author-two",
+							Price:  11.0,
+							ISBN:   "123456789222",
+							Active: true,
+						},
+					}
+
+					bl.count = int32(len(bl.list))
+				},
+				checks: CheckList(
+					expected([]*models.Book{
+						{ID: 1, Title: "test-book-one", Author: "test-author-one", Price: 10.0, ISBN: "1234567890", Active: true},
+						{ID: 2, Title: "test-book-two", Author: "test-author-two", Price: 11.0, ISBN: "123456789222", Active: true},
+					}),
+				),
+			},
+			{
+				name: "deleted-items",
+				before: func(bl *BookList) {
+					bl.list = map[int32]*models.Book{
+						1: {
+							ID:     1,
+							Title:  "test-book-one",
+							Author: "test-author-one",
+							Price:  10.0,
+							ISBN:   "1234567890",
+							Active: true,
+						},
+						2: {
+							ID:     2,
+							Title:  "test-book-two",
+							Author: "test-author-two",
+							Price:  11.0,
+							ISBN:   "123456789222",
+							Active: false,
+						},
+					}
+
+					bl.count = int32(len(bl.list))
+				},
+				checks: CheckList(
+					expected([]*models.Book{
+						{ID: 1, Title: "test-book-one", Author: "test-author-one", Price: 10.0, ISBN: "1234567890", Active: true},
+					}),
+				),
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				bl  = NewBookList()
+				got []*models.Book
+			)
+
+			if tt.before != nil {
+				tt.before(bl)
+			}
+
+			got = bl.GetAll()
 			for _, check := range tt.checks {
 				check(t, got, bl)
 			}
