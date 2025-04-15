@@ -23,7 +23,7 @@ go build
 ```shell
 # add a book
 $ curl --header "Content-Type: application/json" --request POST --data '{"Title":"book1", "Author":"author1"}' http://localhost:8080/books
-{"ID":1}
+{"ID":1,"Title":"book2","Author":"author2","Price":0,"ISBN":"","Active":true}
 
 # get all books
 $ curl --header "Content-Type: application/json" --request GET  http://localhost:8080/books

@@ -2,9 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/padiazg/nurdsoft-challenge/internals"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_retrieveOneHandlerFn(t *testing.T) {
+func Test_createHandlerFn(t *testing.T) {
 	var (
 		expected = func(book *models.Book) CheckFn {
 			return func(t *testing.T, r *httptest.ResponseRecorder) {
@@ -26,57 +26,31 @@ func Test_retrieveOneHandlerFn(t *testing.T) {
 		}
 
 		tests = []struct {
-			name   string
-			id     int32
-			before func(bl *internals.BookList)
-			checks []CheckFn
+			name    string
+			id      int32
+			payload string
+			before  func(bl *internals.BookList)
+			checks  []CheckFn
 		}{
 			{
-				name: "success",
-				id:   1,
-				before: func(bl *internals.BookList) {
-					bl.List = map[int32]*models.Book{
-						1: {
-							ID:     1,
-							Title:  "test-book-one",
-							Author: "test-author-one",
-							Price:  10.0,
-							ISBN:   "1234567890",
-							Active: true,
-						},
-					}
-
-					bl.Count = int32(len(bl.List))
-				},
+				name:    "success",
+				id:      1,
+				payload: `{"Title":"test-book-one", "Author":"test-author-one", "Price": 10.0, "ISBN": "1234567890", "Active": true}`,
 				checks: CheckList(
-					statusCode(http.StatusOK),
+					statusCode(http.StatusCreated),
 					expected(&models.Book{ID: 1, Title: "test-book-one", Author: "test-author-one", Price: 10.0, ISBN: "1234567890", Active: true}),
 				),
 			},
 			{
-				name: "not-found",
-				id:   2,
-				before: func(bl *internals.BookList) {
-					bl.List = map[int32]*models.Book{
-						1: {
-							ID:     1,
-							Title:  "test-book-one",
-							Author: "test-author-one",
-							Price:  10.0,
-							ISBN:   "1234567890",
-							Active: true,
-						},
-					}
-
-					bl.Count = int32(len(bl.List))
-				},
+				name:    "error",
+				id:      1,
+				payload: `{"Title":"", "Author":"", "Price": 10.0, "ISBN": "1234567890", "Active": true}`,
 				checks: CheckList(
-					statusCode(http.StatusNotFound),
+					statusCode(http.StatusBadRequest),
 				),
 			},
 		}
 	)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
@@ -89,9 +63,10 @@ func Test_retrieveOneHandlerFn(t *testing.T) {
 				tt.before(server.data)
 			}
 
-			server.router.ServeHTTP(recorder,
-				httptest.NewRequest("GET", fmt.Sprintf("/books/%d", tt.id), nil),
-			)
+			req := httptest.NewRequest("POST", "/books", strings.NewReader(tt.payload))
+			req.Header.Add("Content-Type", "application/json")
+
+			server.router.ServeHTTP(recorder, req)
 			for _, check := range tt.checks {
 				check(t, recorder)
 			}

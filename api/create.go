@@ -11,7 +11,7 @@ func createHandlerFn(s *Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var (
 			data = &models.Book{}
-			id   int32
+			book *models.Book
 			err  error
 		)
 
@@ -20,12 +20,12 @@ func createHandlerFn(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		if id, err = s.data.Add(data); err != nil {
+		if book, err = s.data.Add(data); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, gin.H{"ID": id})
+		ctx.JSON(http.StatusCreated, book)
 	}
 }
 

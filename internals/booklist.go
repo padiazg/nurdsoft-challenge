@@ -19,10 +19,10 @@ func NewBookList() *BookList {
 	return book_list
 }
 
-func (bl *BookList) Add(data *models.Book) (int32, error) {
+func (bl *BookList) Add(data *models.Book) (*models.Book, error) {
 	// only two fields checked to trigger some error
 	if data.Title == "" || data.Author == "" {
-		return 0, fmt.Errorf("some field data missing")
+		return nil, fmt.Errorf("some field data missing")
 	}
 
 	bl.lock.Lock()
@@ -33,7 +33,7 @@ func (bl *BookList) Add(data *models.Book) (int32, error) {
 	data.Active = true
 	bl.List[bl.Count] = data
 
-	return bl.Count, nil
+	return data, nil
 }
 
 func (bl *BookList) GetOne(id int32) (*models.Book, error) {

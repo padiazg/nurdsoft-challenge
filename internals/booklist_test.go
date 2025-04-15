@@ -52,14 +52,14 @@ func TestNewBookList(t *testing.T) {
 }
 
 func TestBookList_Add(t *testing.T) {
-	type CheckFn func(t *testing.T, id int32, bl *BookList)
+	type CheckFn func(t *testing.T, book *models.Book, bl *BookList)
 
 	var (
 		CheckList = func(fns ...CheckFn) []CheckFn { return fns }
 		err       error
 
 		hasError = func(want bool) CheckFn {
-			return func(t *testing.T, _ int32, _ *BookList) {
+			return func(t *testing.T, _ *models.Book, _ *BookList) {
 				t.Helper()
 				if want {
 					assert.NotNil(t, err, "hasError: error expected, none produced")
@@ -70,16 +70,16 @@ func TestBookList_Add(t *testing.T) {
 		}
 
 		checkCount = func(q int) CheckFn {
-			return func(t *testing.T, _ int32, bl *BookList) {
+			return func(t *testing.T, _ *models.Book, bl *BookList) {
 				t.Helper()
 				assert.Equal(t, q, len(bl.List))
 			}
 		}
 
 		expectedID = func(expected_id int32) CheckFn {
-			return func(t *testing.T, id int32, _ *BookList) {
+			return func(t *testing.T, book *models.Book, _ *BookList) {
 				t.Helper()
-				assert.Equal(t, expected_id, id)
+				assert.Equal(t, expected_id, book.ID)
 			}
 		}
 
@@ -125,7 +125,7 @@ func TestBookList_Add(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				bl  = NewBookList()
-				got int32
+				got *models.Book
 			)
 
 			if tt.before != nil {
