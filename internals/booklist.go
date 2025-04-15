@@ -41,7 +41,7 @@ func (bl *BookList) GetOne(id int32) (*models.Book, error) {
 		return book, nil
 	}
 
-	return nil, fmt.Errorf("%d not found", id)
+	return nil, ErrorNotFound{Err: fmt.Errorf("%d not found", id)}
 }
 
 func (bl *BookList) GetAll() []*models.Book {
