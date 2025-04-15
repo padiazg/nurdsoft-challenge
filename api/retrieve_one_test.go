@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,42 +12,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_retrieveAllHandlerFn(t *testing.T) {
+func Test_retrieveOneHandlerFn(t *testing.T) {
 	var (
-		expected = func(list []*models.Book) CheckFn {
+		expected = func(book *models.Book) CheckFn {
 			return func(t *testing.T, r *httptest.ResponseRecorder) {
 				t.Helper()
 
-				data := []*models.Book{}
+				data := &models.Book{}
 				json.Unmarshal(r.Body.Bytes(), &data)
 
-				len0 := len(list)
-				len1 := len(data)
-
-				if assert.Equalf(t, len0, len1, "count differ: expected %d, got %d", len0, len1) {
-					for _, b0 := range list {
-						found := false
-						for _, b1 := range data {
-							if b0.ID == b1.ID {
-								found = true
-								break
-							}
-						}
-						if !found {
-							t.Errorf("expected ID=%d to be present, not found", b0.ID)
-						}
-					}
-				}
+				assert.EqualValues(t, book, data)
 			}
 		}
 
 		tests = []struct {
 			name   string
+			id     int32
 			before func(bl *internals.BookList)
 			checks []CheckFn
 		}{
 			{
 				name: "success",
+				id:   1,
 				before: func(bl *internals.BookList) {
 					bl.List = map[int32]*models.Book{
 						1: {
@@ -63,9 +50,28 @@ func Test_retrieveAllHandlerFn(t *testing.T) {
 				},
 				checks: CheckList(
 					statusCode(http.StatusOK),
-					expected([]*models.Book{
-						{ID: 1, Title: "test-book-one", Author: "test-author-one", Price: 10.0, ISBN: "1234567890", Active: true},
-					}),
+					expected(&models.Book{ID: 1, Title: "test-book-one", Author: "test-author-one", Price: 10.0, ISBN: "1234567890", Active: true}),
+				),
+			},
+			{
+				name: "not-found",
+				id:   2,
+				before: func(bl *internals.BookList) {
+					bl.List = map[int32]*models.Book{
+						1: {
+							ID:     1,
+							Title:  "test-book-one",
+							Author: "test-author-one",
+							Price:  10.0,
+							ISBN:   "1234567890",
+							Active: true,
+						},
+					}
+
+					bl.Count = int32(len(bl.List))
+				},
+				checks: CheckList(
+					statusCode(http.StatusNotFound),
 				),
 			},
 		}
@@ -83,7 +89,7 @@ func Test_retrieveAllHandlerFn(t *testing.T) {
 				tt.before(server.data)
 			}
 
-			server.router.ServeHTTP(recorder, httptest.NewRequest("GET", "/books", nil))
+			server.router.ServeHTTP(recorder, httptest.NewRequest("GET", fmt.Sprintf("/books/%d", tt.id), nil))
 			for _, check := range tt.checks {
 				check(t, recorder)
 			}

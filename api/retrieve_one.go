@@ -25,7 +25,7 @@ func retrieveOneHandlerFn(s *Server) gin.HandlerFunc {
 
 		book, err = s.data.GetOne(int32(id))
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"retrieving data:": err.Error()})
+			ctx.JSON(http.StatusNotFound, gin.H{"retrieving data:": err.Error()})
 			return
 		}
 
