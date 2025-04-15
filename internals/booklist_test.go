@@ -23,7 +23,7 @@ func TestNewBookList(t *testing.T) {
 		checkListInstantiated = func() CheckFn {
 			return func(t *testing.T, bl *BookList) {
 				t.Helper()
-				assert.NotNil(t, bl.list)
+				assert.NotNil(t, bl.List)
 			}
 		}
 
@@ -72,7 +72,7 @@ func TestBookList_Add(t *testing.T) {
 		checkCount = func(q int) CheckFn {
 			return func(t *testing.T, _ int32, bl *BookList) {
 				t.Helper()
-				assert.Equal(t, q, len(bl.list))
+				assert.Equal(t, q, len(bl.List))
 			}
 		}
 
@@ -102,8 +102,8 @@ func TestBookList_Add(t *testing.T) {
 				name: "second-added",
 				book: &models.Book{Title: "test-book-1", Author: "author"},
 				before: func(bl *BookList) {
-					bl.list[1] = &models.Book{ID: 1}
-					bl.count = 1
+					bl.List[1] = &models.Book{ID: 1}
+					bl.Count = 1
 				},
 				checks: CheckList(
 					hasError(false),
@@ -174,7 +174,7 @@ func TestBookList_GetOne(t *testing.T) {
 				name: "get-first",
 				id:   1,
 				before: func(bl *BookList) {
-					bl.list[1] = &models.Book{
+					bl.List[1] = &models.Book{
 						ID:     1,
 						Title:  "test-book-one",
 						Author: "test-author-one",
@@ -182,7 +182,7 @@ func TestBookList_GetOne(t *testing.T) {
 						ISBN:   "1234567890",
 						Active: true,
 					}
-					bl.count = 1
+					bl.Count = 1
 				},
 				checks: CheckList(
 					hasError(false),
@@ -200,7 +200,7 @@ func TestBookList_GetOne(t *testing.T) {
 				name: "get-second",
 				id:   2,
 				before: func(bl *BookList) {
-					bl.list = map[int32]*models.Book{
+					bl.List = map[int32]*models.Book{
 						1: {
 							ID:     1,
 							Title:  "test-book-one",
@@ -219,7 +219,7 @@ func TestBookList_GetOne(t *testing.T) {
 						},
 					}
 
-					bl.count = int32(len(bl.list))
+					bl.Count = int32(len(bl.List))
 				},
 				checks: CheckList(
 					hasError(false),
@@ -237,8 +237,8 @@ func TestBookList_GetOne(t *testing.T) {
 				name: "not-found",
 				id:   3,
 				before: func(bl *BookList) {
-					bl.list = map[int32]*models.Book{}
-					bl.count = int32(0)
+					bl.List = map[int32]*models.Book{}
+					bl.Count = int32(0)
 				},
 				checks: CheckList(
 					hasError(true),
@@ -248,7 +248,7 @@ func TestBookList_GetOne(t *testing.T) {
 				name: "deleted",
 				id:   2,
 				before: func(bl *BookList) {
-					bl.list = map[int32]*models.Book{
+					bl.List = map[int32]*models.Book{
 						1: {
 							ID:     1,
 							Title:  "test-book-one",
@@ -267,7 +267,7 @@ func TestBookList_GetOne(t *testing.T) {
 						},
 					}
 
-					bl.count = int32(len(bl.list))
+					bl.Count = int32(len(bl.List))
 				},
 				checks: CheckList(
 					hasError(true),
@@ -331,7 +331,7 @@ func TestBookList_GetAll(t *testing.T) {
 			{
 				name: "success",
 				before: func(bl *BookList) {
-					bl.list = map[int32]*models.Book{
+					bl.List = map[int32]*models.Book{
 						1: {
 							ID:     1,
 							Title:  "test-book-one",
@@ -350,7 +350,7 @@ func TestBookList_GetAll(t *testing.T) {
 						},
 					}
 
-					bl.count = int32(len(bl.list))
+					bl.Count = int32(len(bl.List))
 				},
 				checks: CheckList(
 					expected([]*models.Book{
@@ -362,7 +362,7 @@ func TestBookList_GetAll(t *testing.T) {
 			{
 				name: "deleted-items",
 				before: func(bl *BookList) {
-					bl.list = map[int32]*models.Book{
+					bl.List = map[int32]*models.Book{
 						1: {
 							ID:     1,
 							Title:  "test-book-one",
@@ -381,7 +381,7 @@ func TestBookList_GetAll(t *testing.T) {
 						},
 					}
 
-					bl.count = int32(len(bl.list))
+					bl.Count = int32(len(bl.List))
 				},
 				checks: CheckList(
 					expected([]*models.Book{
@@ -446,7 +446,7 @@ func TestBookList_Update(t *testing.T) {
 				name: "update-first",
 				id:   1,
 				before: func(bl *BookList) {
-					bl.list[1] = &models.Book{
+					bl.List[1] = &models.Book{
 						ID:     1,
 						Title:  "test-book-one",
 						Author: "test-author-one",
@@ -454,7 +454,7 @@ func TestBookList_Update(t *testing.T) {
 						ISBN:   "1234567890",
 						Active: true,
 					}
-					bl.count = 1
+					bl.Count = 1
 				},
 				data: &models.Book{
 					ID:     1,
@@ -487,7 +487,7 @@ func TestBookList_Update(t *testing.T) {
 				name: "missing-data",
 				id:   1,
 				before: func(bl *BookList) {
-					bl.list[1] = &models.Book{
+					bl.List[1] = &models.Book{
 						ID:     1,
 						Title:  "test-book-one",
 						Author: "test-author-one",
@@ -495,7 +495,7 @@ func TestBookList_Update(t *testing.T) {
 						ISBN:   "1234567890",
 						Active: true,
 					}
-					bl.count = 1
+					bl.Count = 1
 				},
 				data: &models.Book{
 					ID:     1,
@@ -551,7 +551,7 @@ func TestBookList_Delete(t *testing.T) {
 		isDeleted = func(id int32) CheckFn {
 			return func(t *testing.T, bl *BookList) {
 				t.Helper()
-				assert.False(t, bl.list[id].Active)
+				assert.False(t, bl.List[id].Active)
 			}
 		}
 
@@ -565,7 +565,7 @@ func TestBookList_Delete(t *testing.T) {
 				name: "success",
 				id:   1,
 				before: func(bl *BookList) {
-					bl.list[1] = &models.Book{
+					bl.List[1] = &models.Book{
 						ID:     1,
 						Title:  "test-book-one",
 						Author: "test-author-one",
@@ -573,7 +573,7 @@ func TestBookList_Delete(t *testing.T) {
 						ISBN:   "1234567890",
 						Active: true,
 					}
-					bl.count = 1
+					bl.Count = 1
 				},
 				checks: CheckList(
 					hasError(false),
@@ -590,22 +590,6 @@ func TestBookList_Delete(t *testing.T) {
 		}
 	)
 
-	// type fields struct {
-	// 	list  map[int32]*models.Book
-	// 	lock  sync.Mutex
-	// 	count int32
-	// }
-	// type args struct {
-	// 	id int32
-	// }
-	// tests := []struct {
-	// 	name    string
-	// 	fields  fields
-	// 	args    args
-	// 	wantErr bool
-	// }{
-	// 	// TODO: Add test cases.
-	// }
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {

@@ -8,14 +8,14 @@ import (
 )
 
 type BookList struct {
-	list  map[int32]*models.Book
+	List  map[int32]*models.Book
 	lock  sync.Mutex
-	count int32
+	Count int32
 }
 
 func NewBookList() *BookList {
 	book_list := &BookList{}
-	book_list.list = map[int32]*models.Book{}
+	book_list.List = map[int32]*models.Book{}
 	return book_list
 }
 
@@ -28,16 +28,16 @@ func (bl *BookList) Add(data *models.Book) (int32, error) {
 	bl.lock.Lock()
 	defer bl.lock.Unlock()
 
-	bl.count++
-	data.ID = bl.count
+	bl.Count++
+	data.ID = bl.Count
 	data.Active = true
-	bl.list[bl.count] = data
+	bl.List[bl.Count] = data
 
-	return bl.count, nil
+	return bl.Count, nil
 }
 
 func (bl *BookList) GetOne(id int32) (*models.Book, error) {
-	if book, ok := bl.list[id]; ok && book.Active {
+	if book, ok := bl.List[id]; ok && book.Active {
 		return book, nil
 	}
 
@@ -47,7 +47,7 @@ func (bl *BookList) GetOne(id int32) (*models.Book, error) {
 func (bl *BookList) GetAll() []*models.Book {
 	res := []*models.Book{}
 
-	for _, book := range bl.list {
+	for _, book := range bl.List {
 		if book.Active {
 			res = append(res, book)
 		}

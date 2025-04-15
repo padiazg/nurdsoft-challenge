@@ -7,8 +7,8 @@ import (
 	"github.com/padiazg/nurdsoft-challenge/models"
 )
 
-func (s *Server) RegisterCreate() {
-	s.router.POST(s.config.Root, func(ctx *gin.Context) {
+func createHandlerFn(s *Server) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		var (
 			data = &models.Book{}
 			id   int32
@@ -26,5 +26,9 @@ func (s *Server) RegisterCreate() {
 		}
 
 		ctx.JSON(http.StatusCreated, gin.H{"ID": id})
-	})
+	}
+}
+
+func (s *Server) RegisterCreate() {
+	s.router.POST(s.config.Root, createHandlerFn(s))
 }

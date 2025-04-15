@@ -8,8 +8,8 @@ import (
 	"github.com/padiazg/nurdsoft-challenge/models"
 )
 
-func (s *Server) RegisterUpdate() {
-	s.router.PUT(s.config.Root+"/:id", func(ctx *gin.Context) {
+func updateHandlerFn(s *Server) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		var (
 			ids  = ctx.Param("id")
 			data = &models.Book{}
@@ -35,5 +35,9 @@ func (s *Server) RegisterUpdate() {
 		}
 
 		ctx.JSON(http.StatusCreated, book)
-	})
+	}
+}
+
+func (s *Server) RegisterUpdate() {
+	s.router.PUT(s.config.Root+"/:id", updateHandlerFn(s))
 }

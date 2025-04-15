@@ -8,8 +8,8 @@ import (
 	"github.com/padiazg/nurdsoft-challenge/models"
 )
 
-func (s *Server) RegisterRetrieveOne() {
-	s.router.GET(s.config.Root+"/:id", func(ctx *gin.Context) {
+func retrieveOneHandlerFn(s *Server) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		var (
 			ids  = ctx.Param("id")
 			err  error
@@ -30,5 +30,9 @@ func (s *Server) RegisterRetrieveOne() {
 		}
 
 		ctx.JSON(http.StatusOK, book)
-	})
+	}
+}
+
+func (s *Server) RegisterRetrieveOne() {
+	s.router.GET(s.config.Root+"/:id", retrieveOneHandlerFn(s))
 }

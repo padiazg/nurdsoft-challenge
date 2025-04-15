@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) RegisterDelete() {
-	s.router.DELETE(s.config.Root+"/:id", func(ctx *gin.Context) {
+func deleteHandlerFn(s *Server) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		var (
 			ids = ctx.Param("id")
 			err error
@@ -29,5 +29,9 @@ func (s *Server) RegisterDelete() {
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{"delete": fmt.Sprintf("succesfully deleted record %d", id)})
-	})
+	}
+}
+
+func (s *Server) RegisterDelete() {
+	s.router.DELETE(s.config.Root+"/:id", deleteHandlerFn(s))
 }
