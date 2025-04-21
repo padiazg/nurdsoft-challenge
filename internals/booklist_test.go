@@ -91,7 +91,7 @@ func TestBookList_Add(t *testing.T) {
 		}{
 			{
 				name: "first-added",
-				book: &models.Book{Title: "test-book-1", Author: "author"},
+				book: &models.Book{Title: "test-book-1", Author: "author", Price: 10.0},
 				checks: CheckList(
 					hasError(false),
 					checkCount(1),
@@ -100,7 +100,7 @@ func TestBookList_Add(t *testing.T) {
 			},
 			{
 				name: "second-added",
-				book: &models.Book{Title: "test-book-1", Author: "author"},
+				book: &models.Book{Title: "test-book-1", Author: "author", Price: 11.0},
 				before: func(bl *BookList) {
 					bl.List[1] = &models.Book{ID: 1}
 					bl.Count = 1

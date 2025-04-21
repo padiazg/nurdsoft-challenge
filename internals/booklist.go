@@ -21,7 +21,7 @@ func NewBookList() *BookList {
 
 func (bl *BookList) Add(data *models.Book) (*models.Book, error) {
 	// only two fields checked to trigger some error
-	if data.Title == "" || data.Author == "" {
+	if data.Title == "" || data.Author == "" || data.Price == 0.0 {
 		return nil, fmt.Errorf("some field data missing")
 	}
 
@@ -62,7 +62,7 @@ func (bl *BookList) Update(id int32, data *models.Book) (*models.Book, error) {
 		return nil, err
 	}
 
-	if data.Title == "" || data.Author == "" {
+	if data.Title == "" || data.Author == "" || data.Price == 0.0 {
 		return nil, fmt.Errorf("some field data missing")
 	}
 
